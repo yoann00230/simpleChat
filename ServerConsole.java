@@ -1,15 +1,46 @@
+import java.io.IOException;
+import java.util.Scanner;
+
+import client.ChatClient;
 import common.ChatIF;
 import ocsf.server.ConnectionToClient;
 
 public class ServerConsole implements ChatIF {
 	final public static int DEFAULT_PORT = 5555;
-	ChatIF clientUI;
+	EchoServer server;
+	Scanner fromConsole;
 	
 	public void display(String message) 
 	  {
 	    System.out.println("> " + message);
 	  }
 	
+	public ServerConsole(int port) 
+	  {
+	    server = new EchoServer(port);
+	    
+	    // Create scanner object to read from console
+	    fromConsole = new Scanner(System.in); 
+	  }
+	public void accept() 
+	  {
+	    try
+	    {
+
+	      String message;
+
+	      while (true) 
+	      {
+	        message = fromConsole.nextLine();
+	        server.handleMessageFromClientUI(message);
+	      }
+	    } 
+	    catch (Exception ex) 
+	    {
+	      System.out.println
+	        ("Unexpected error while reading from console!");
+	    }
+	  }
 	public static void main(String[] args) 
 	  {
 	    String host = "";
@@ -29,7 +60,7 @@ public class ServerConsole implements ChatIF {
 	    {
 	    	port = DEFAULT_PORT;
 	    }
-	    ClientConsole chat= new ClientConsole(host, port);
+	    ServerConsole chat= new ServerConsole(port);
 	    chat.accept();  //Wait for console data
 	  }
 }
