@@ -68,7 +68,11 @@ public class ChatClient extends AbstractClient
   {
     try
     {
-      sendToServer(message);
+    	if(message.startsWith("#")) {
+    		handleCommand(message);
+    	}else {
+    		sendToServer(message);
+    	}
     }
     catch(IOException e)
     {
@@ -76,6 +80,77 @@ public class ChatClient extends AbstractClient
         ("Could not send message to server.  Terminating client.");
       quit();
     }
+  }
+  
+  private void handleCommand(String cmd) {
+	  String host, tmp;
+	  int port;
+	  
+	  if(cmd.equals("#quit")) {
+		  clientUI.display("The client will quit.");
+		  try {
+			this.closeConnection();
+			quit();
+		} catch (IOException e) {
+			clientUI.display("Cannot close connection at this time.");
+		}
+	  }
+	  if(cmd.equals("#logoff")) {
+		  try {
+			  if (this.isConnected()) {
+				  this.closeConnection();
+			  }else {
+				  clientUI.display("You have already been logged off.");
+			  }
+			}catch (IOException e){
+				clientUI.display("Cannot log off at this time.");
+			}
+	  }
+	  if(cmd.contains("#sethost")) {
+		  if (!(this.isConnected())) {
+			  cmd.trim();
+			  host = cmd.substring(9);
+			  setHost(host);
+		  }else {
+			  clientUI.display("You cannot set host while logged in.");
+		  }
+	  }
+	  if(cmd.contains("#setport")) {
+		  if (!(this.isConnected())) {
+			  cmd.trim();
+			  tmp = cmd.substring(9);
+			  port = Integer.parseInt(tmp);
+			  setPort(port);
+		  }else {
+			  clientUI.display("You cannot set host while logged in.");
+		  }
+	  }
+	  if(cmd.equals("#login")) {
+		  try {
+			  if (!(this.isConnected())) {
+				  this.openConnection();
+			  }else {
+				  clientUI.display("You have already been logged in.");
+			  }
+			}catch (IOException e){
+				clientUI.display("Cannot log in at this time.");
+			}
+	  }
+	  if(cmd.equals("#gethost")) {
+		  if (this.isConnected()) {
+			  clientUI.display(this.getHost());
+		  }else {
+			  clientUI.display("You cannot get host while logged out.");
+		  }
+	  }
+	  if(cmd.equals("#getport")) {
+		  if (this.isConnected()) {
+			  tmp = Integer.toString(this.getPort());
+			  clientUI.display(tmp);
+		  }else {
+			  clientUI.display("You cannot get port while logged out.");
+		  }
+	  }  
   }
   
   /**
@@ -89,6 +164,31 @@ public class ChatClient extends AbstractClient
     }
     catch(IOException e) {}
     System.exit(0);
+  }
+  
+  /**
+	 * Implementation of hook method called after the connection has been closed. The default
+	 * implementation does nothing. The method may be overriden by subclasses to
+	 * perform special processing such as cleaning up and terminating, or
+	 * attempting to reconnect.
+	 */
+  @Override
+  protected void connectionClosed() {
+	  clientUI.display("The connection to server is closed.");
+  }
+
+	/**
+	 * Implementation of hook method called each time an exception is thrown by the client's
+	 * thread that is waiting for messages from the server. The method may be
+	 * overridden by subclasses.
+	 * 
+	 * @param exception
+	 *            the exception raised.
+	 */
+  @Override
+  protected void connectionException(Exception exception) {
+	  clientUI.display("The server has shut down.");
+	  System.exit(0);
   }
 }
 //End of ChatClient class
